@@ -25,17 +25,20 @@ export default function App() {
 
   const sseCleanupRef = useRef(null);
 
-  // Initialize data on mount
   useEffect(() => {
-    loadInitialData();
-
     // Check for OAuth callback URL params
     const params = new URLSearchParams(window.location.search);
     if (params.get('auth')) {
       const type = params.get('auth');
-      showNotification('success', `Successfully authenticated with ${type.includes('spotify') ? 'Spotify' : 'Google/YouTube'}!`);
+      if (type.includes('error')) {
+        showNotification('error', `Authentication failed with ${type.includes('spotify') ? 'Spotify' : 'Google/YouTube'}. Please check your credentials.`);
+      } else {
+        showNotification('success', `Successfully authenticated with ${type.includes('spotify') ? 'Spotify' : 'Google/YouTube'}!`);
+      }
       window.history.replaceState({}, document.title, window.location.pathname);
     }
+
+    loadInitialData();
   }, []);
 
   const showNotification = (type, message) => {

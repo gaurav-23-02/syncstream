@@ -27,37 +27,47 @@ public class AuthController {
     }
 
     @GetMapping("/spotify/login")
-    public ResponseEntity<Map<String, String>> getSpotifyLoginUrl() {
-        String url = sessionAuthService.buildSpotifyAuthUrl();
+    public ResponseEntity<Map<String, String>> getSpotifyLoginUrl(
+            @RequestParam(name = "redirect", required = false) String redirectUrl) {
+        String url = sessionAuthService.buildSpotifyAuthUrl(redirectUrl);
         return ResponseEntity.ok(Map.of("url", url));
     }
 
     @GetMapping("/spotify/callback")
     public void spotifyCallback(@RequestParam(name = "code", required = false) String code,
+                                @RequestParam(name = "state", required = false) String state,
                                 @RequestParam(name = "error", required = false) String error,
                                 HttpServletResponse response) throws IOException {
-        log.info("Received Spotify OAuth callback, error: {}", error);
+        log.info("Received Spotify OAuth callback, code: {}, error: {}, state: {}", code != null, error, state);
         if (code != null) {
             sessionAuthService.handleSpotifyCallback(code);
         }
-        response.sendRedirect("http://localhost:5173?auth=spotify_success");
+
+        String targetDomain = (state != null && state.startsWith("http")) ? state : appConfig.getFrontendUrl();
+        String separator = targetDomain.contains("?") ? "&" : "?";
+        response.sendRedirect(targetDomain + separator + "auth=" + (error != null ? "spotify_error" : "spotify_success"));
     }
 
     @GetMapping("/google/login")
-    public ResponseEntity<Map<String, String>> getGoogleLoginUrl() {
-        String url = sessionAuthService.buildGoogleAuthUrl();
+    public ResponseEntity<Map<String, String>> getGoogleLoginUrl(
+            @RequestParam(name = "redirect", required = false) String redirectUrl) {
+        String url = sessionAuthService.buildGoogleAuthUrl(redirectUrl);
         return ResponseEntity.ok(Map.of("url", url));
     }
 
     @GetMapping("/google/callback")
     public void googleCallback(@RequestParam(name = "code", required = false) String code,
+                               @RequestParam(name = "state", required = false) String state,
                                @RequestParam(name = "error", required = false) String error,
                                HttpServletResponse response) throws IOException {
-        log.info("Received Google OAuth callback, error: {}", error);
+        log.info("Received Google OAuth callback, code: {}, error: {}, state: {}", code != null, error, state);
         if (code != null) {
             sessionAuthService.handleGoogleCallback(code);
         }
-        response.sendRedirect("http://localhost:5173?auth=google_success");
+
+        String targetDomain = (state != null && state.startsWith("http")) ? state : appConfig.getFrontendUrl();
+        String separator = targetDomain.contains("?") ? "&" : "?";
+        response.sendRedirect(targetDomain + separator + "auth=" + (error != null ? "google_error" : "google_success"));
     }
 
     @PostMapping("/demo-login")

@@ -34,6 +34,13 @@ public class AppConfig {
     @Value("${syncstream.demo-mode:true}")
     private boolean demoMode;
 
+    @Value("${syncstream.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
+
+    public String getFrontendUrl() {
+        return frontendUrl;
+    }
+
     @Bean(name = "virtualThreadExecutor")
     public ExecutorService virtualThreadExecutor() {
         return Executors.newVirtualThreadPerTaskExecutor();

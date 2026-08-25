@@ -20,13 +20,15 @@ export const api = {
   },
 
   async getSpotifyLoginUrl() {
-    const res = await fetch(`${API_BASE}/auth/spotify/login`, { credentials: 'include' });
+    const redirectParam = typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : '';
+    const res = await fetch(`${API_BASE}/auth/spotify/login?redirect=${redirectParam}`, { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to get Spotify login URL');
     return res.json();
   },
 
   async getGoogleLoginUrl() {
-    const res = await fetch(`${API_BASE}/auth/google/login`, { credentials: 'include' });
+    const redirectParam = typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : '';
+    const res = await fetch(`${API_BASE}/auth/google/login?redirect=${redirectParam}`, { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to get Google login URL');
     return res.json();
   },

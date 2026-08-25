@@ -49,7 +49,13 @@ public class SessionAuthService {
                 .build();
     }
 
-    public String buildSpotifyAuthUrl() {
+    public String buildSpotifyAuthUrl(String returnUrl) {
+        String effectiveReturn = (returnUrl != null && !returnUrl.isBlank()) ? returnUrl : appConfig.getFrontendUrl();
+        if (appConfig.getSpotifyClientId() == null || appConfig.getSpotifyClientId().isBlank() || appConfig.getSpotifyClientId().contains("mock")) {
+            log.info("Generating instant sandbox login for Spotify (mock client ID configured)");
+            return appConfig.getSpotifyRedirectUri() + "?code=demo_spotify_code&state=" + URLEncoder.encode(effectiveReturn, StandardCharsets.UTF_8);
+        }
+
         try {
             URI redirectUri = SpotifyHttpManager.makeUri(appConfig.getSpotifyRedirectUri());
             SpotifyApi spotifyApi = new SpotifyApi.Builder()
@@ -58,23 +64,32 @@ public class SessionAuthService {
                     .setRedirectUri(redirectUri)
                     .build();
 
+            // Spotify OAuth scopes are space-delimited
             AuthorizationCodeUriRequest authCodeUriRequest = spotifyApi.authorizationCodeUri()
-                    .scope("playlist-read-private,playlist-read-collaborative,user-read-private,user-read-email,user-library-read")
+                    .scope("playlist-read-private playlist-read-collaborative user-read-private user-read-email user-library-read")
+                    .state(effectiveReturn)
                     .show_dialog(true)
                     .build();
 
             return authCodeUriRequest.execute().toString();
         } catch (Exception e) {
-            log.warn("Could not generate official Spotify Auth URL (missing/mock credentials): {}", e.getMessage());
-            return appConfig.getSpotifyRedirectUri() + "?code=demo_spotify_code";
+            log.warn("Could not generate official Spotify Auth URL: {}", e.getMessage());
+            return appConfig.getSpotifyRedirectUri() + "?code=demo_spotify_code&state=" + URLEncoder.encode(effectiveReturn, StandardCharsets.UTF_8);
         }
     }
 
-    public String buildGoogleAuthUrl() {
+    public String buildGoogleAuthUrl(String returnUrl) {
+        String effectiveReturn = (returnUrl != null && !returnUrl.isBlank()) ? returnUrl : appConfig.getFrontendUrl();
+        if (appConfig.getGoogleClientId() == null || appConfig.getGoogleClientId().isBlank() || appConfig.getGoogleClientId().contains("mock")) {
+            log.info("Generating instant sandbox login for Google (mock client ID configured)");
+            return appConfig.getGoogleRedirectUri() + "?code=demo_google_code&state=" + URLEncoder.encode(effectiveReturn, StandardCharsets.UTF_8);
+        }
+
         try {
             String scope = URLEncoder.encode("https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email", StandardCharsets.UTF_8);
             String redirectUri = URLEncoder.encode(appConfig.getGoogleRedirectUri(), StandardCharsets.UTF_8);
             String clientId = URLEncoder.encode(appConfig.getGoogleClientId(), StandardCharsets.UTF_8);
+            String stateParam = "&state=" + URLEncoder.encode(effectiveReturn, StandardCharsets.UTF_8);
 
             return "https://accounts.google.com/o/oauth2/v2/auth?" +
                     "client_id=" + clientId +
@@ -82,10 +97,11 @@ public class SessionAuthService {
                     "&response_type=code" +
                     "&scope=" + scope +
                     "&access_type=offline" +
-                    "&prompt=consent";
+                    "&prompt=consent" +
+                    stateParam;
         } catch (Exception e) {
             log.warn("Could not generate Google Auth URL: {}", e.getMessage());
-            return appConfig.getGoogleRedirectUri() + "?code=demo_google_code";
+            return appConfig.getGoogleRedirectUri() + "?code=demo_google_code&state=" + URLEncoder.encode(effectiveReturn, StandardCharsets.UTF_8);
         }
     }
 
