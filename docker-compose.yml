@@ -1,0 +1,28 @@
+services:
+  syncstream:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: syncstream:latest
+    container_name: syncstream-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # App Configuration
+      - PORT=8080
+      - DEMO_MODE=${DEMO_MODE:-true}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}
+
+      # Spotify OAuth Credentials (https://developer.spotify.com/dashboard)
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-mock-spotify-client-id}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-mock-spotify-client-secret}
+      - SPOTIFY_REDIRECT_URI=${SPOTIFY_REDIRECT_URI:-http://localhost:8080/api/auth/spotify/callback}
+
+      # Google OAuth Credentials (https://console.cloud.google.com/apis/credentials)
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-mock-google-client-id}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-mock-google-client-secret}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-http://localhost:8080/api/auth/google/callback}
+
+    env_file:
+      - .env

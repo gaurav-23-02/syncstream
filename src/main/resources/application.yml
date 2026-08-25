@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: syncstream
+  threads:
+    virtual:
+      enabled: true
+
+spotify:
+  client-id: ${SPOTIFY_CLIENT_ID:mock-spotify-client-id}
+  client-secret: ${SPOTIFY_CLIENT_SECRET:mock-spotify-client-secret}
+  redirect-uri: ${SPOTIFY_REDIRECT_URI:http://localhost:8080/api/auth/spotify/callback}
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID:mock-google-client-id}
+  client-secret: ${GOOGLE_CLIENT_SECRET:mock-google-client-secret}
+  redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/api/auth/google/callback}
+
+syncstream:
+  demo-mode: ${DEMO_MODE:true}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+
+logging:
+  level:
+    root: INFO
+    com.syncstream: DEBUG
