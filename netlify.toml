@@ -1,12 +1,10 @@
 [build]
-  base = "client"
-  command = "npm run build"
-  publish = "dist"
+  command = "cd client && npm install && npm run build"
+  publish = "client/dist"
 
 [build.environment]
   NODE_VERSION = "20"
 
-# Redirect all routing to index.html for Single Page React App
 [[redirects]]
   from = "/*"
   to = "/index.html"
