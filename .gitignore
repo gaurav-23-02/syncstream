@@ -1,0 +1,18 @@
+# Node dependencies & build outputs
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+
+# Java / Maven build outputs
+target/
+**/target/
+*.class
+
+# Logs & Environment
+*.log
+.env
+.DS_Store
+.idea/
+*.iml
+.vscode/
