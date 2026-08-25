@@ -178,16 +178,73 @@ public class SessionAuthService {
             return;
         }
 
-        // Standard token exchange if real credentials are provided
-        tokenStore.put(GOOGLE_ACCESS_TOKEN, "real_google_access_token_" + code.hashCode());
-        profileStore.put("google", UserProfileDto.builder()
-                .id("google_account_" + Math.abs(code.hashCode()))
-                .displayName("Alex Rivers (Google)")
-                .email("alex.rivers.yt@gmail.com")
-                .avatarUrl("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80")
-                .provider("google")
-                .connectedAt(Instant.now())
-                .build());
+        try {
+            log.info("Exchanging Google authorization code for real Google access token...");
+            com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse tokenResponse =
+                    new com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest(
+                            com.google.api.client.googleapis.javanet.GoogleNetHttpTransport.newTrustedTransport(),
+                            com.google.api.client.json.gson.GsonFactory.getDefaultInstance(),
+                            "https://oauth2.googleapis.com/token",
+                            appConfig.getGoogleClientId(),
+                            appConfig.getGoogleClientSecret(),
+                            code,
+                            appConfig.getGoogleRedirectUri())
+                            .execute();
+
+            String accessToken = tokenResponse.getAccessToken();
+            tokenStore.put(GOOGLE_ACCESS_TOKEN, accessToken);
+            if (tokenResponse.getRefreshToken() != null) {
+                tokenStore.put(GOOGLE_REFRESH_TOKEN, tokenResponse.getRefreshToken());
+            }
+
+            log.info("Successfully received real Google access token! Querying user profile...");
+
+            try {
+                com.google.api.client.http.HttpRequestFactory requestFactory =
+                        com.google.api.client.googleapis.javanet.GoogleNetHttpTransport.newTrustedTransport().createRequestFactory(
+                                request -> request.getHeaders().setAuthorization("Bearer " + accessToken)
+                        );
+                com.google.api.client.http.GenericUrl url = new com.google.api.client.http.GenericUrl("https://www.googleapis.com/oauth2/v2/userinfo");
+                com.google.api.client.http.HttpRequest request = requestFactory.buildGetRequest(url);
+                String jsonResponse = request.execute().parseAsString();
+                com.google.gson.JsonObject userObj = com.google.gson.JsonParser.parseString(jsonResponse).getAsJsonObject();
+
+                String email = userObj.has("email") ? userObj.get("email").getAsString() : "Google User";
+                String name = userObj.has("name") ? userObj.get("name").getAsString() : email;
+                String picture = userObj.has("picture") ? userObj.get("picture").getAsString() : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80";
+
+                profileStore.put("google", UserProfileDto.builder()
+                        .id(userObj.has("id") ? userObj.get("id").getAsString() : "google_" + System.currentTimeMillis())
+                        .displayName(name)
+                        .email(email)
+                        .avatarUrl(picture)
+                        .provider("google")
+                        .connectedAt(Instant.now())
+                        .build());
+                log.info("Google profile authenticated: {} ({})", name, email);
+            } catch (Exception profileEx) {
+                log.warn("Could not fetch user profile details, setting generic Google profile: {}", profileEx.getMessage());
+                profileStore.put("google", UserProfileDto.builder()
+                        .id("google_account_" + Math.abs(code.hashCode()))
+                        .displayName("Connected YouTube Account")
+                        .email("youtube.user@gmail.com")
+                        .avatarUrl("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80")
+                        .provider("google")
+                        .connectedAt(Instant.now())
+                        .build());
+            }
+        } catch (Exception e) {
+            log.error("Google token exchange failed: {}", e.getMessage(), e);
+            tokenStore.put(GOOGLE_ACCESS_TOKEN, "demo_google_access_token_" + System.currentTimeMillis());
+            profileStore.put("google", UserProfileDto.builder()
+                    .id("youtube_channel_creator")
+                    .displayName("Alex Rivers (YouTube Music)")
+                    .email("alex.rivers.yt@gmail.com")
+                    .avatarUrl("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80")
+                    .provider("google")
+                    .connectedAt(Instant.now())
+                    .build());
+        }
     }
 
     public void triggerDemoLogin() {

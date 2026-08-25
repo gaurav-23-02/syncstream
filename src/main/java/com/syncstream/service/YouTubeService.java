@@ -30,7 +30,7 @@ public class YouTubeService {
         String token = sessionAuthService.getGoogleAccessToken();
         String effectivePrivacy = (privacyStatus != null && !privacyStatus.isBlank()) ? privacyStatus.toLowerCase() : "private";
 
-        if (token == null || token.startsWith("demo_") || token.startsWith("mock_") || token.startsWith("real_google_access_token_")) {
+        if (token == null || token.startsWith("demo_") || token.startsWith("mock_")) {
             String mockPlaylistId = "PL_SS_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase();
             log.info("Demo/Sandbox mode: Created YouTube playlist '{}' with ID {}", title, mockPlaylistId);
             return mockPlaylistId;
