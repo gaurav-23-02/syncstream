@@ -111,9 +111,9 @@ public class SessionAuthService {
             // Setup demo spotify user
             tokenStore.put(SPOTIFY_ACCESS_TOKEN, "demo_spotify_access_token_" + System.currentTimeMillis());
             profileStore.put("spotify", UserProfileDto.builder()
-                    .id("spotify_user_premium")
-                    .displayName("Alex Rivers")
-                    .email("alex.rivers@spotify-user.com")
+                    .id("spotify_user")
+                    .displayName("Spotify User")
+                    .email("user@spotify.com")
                     .avatarUrl("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80")
                     .provider("spotify")
                     .connectedAt(Instant.now())
@@ -168,9 +168,9 @@ public class SessionAuthService {
             // Setup demo google user
             tokenStore.put(GOOGLE_ACCESS_TOKEN, "demo_google_access_token_" + System.currentTimeMillis());
             profileStore.put("google", UserProfileDto.builder()
-                    .id("youtube_channel_creator")
-                    .displayName("Alex Rivers (YouTube Music)")
-                    .email("alex.rivers.yt@gmail.com")
+                    .id("youtube_channel_user")
+                    .displayName("YouTube User")
+                    .email("user@gmail.com")
                     .avatarUrl("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80")
                     .provider("google")
                     .connectedAt(Instant.now())
